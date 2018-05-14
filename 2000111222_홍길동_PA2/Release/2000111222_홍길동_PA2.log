@@ -1,0 +1,20 @@
+﻿빌드 시작: 2018-05-14 오후 1:35:03
+     1>2 노드의 "C:\Users\Sunpil\Desktop\4학년 1학기\컴퓨터그래픽스_김창현\연구\2000111222_홍길동_PA2\2000111222_홍길동_PA2.vcxproj" 프로젝트(Build 대상)입니다.
+       프로젝트 파일에 ToolsVersion="14.0"이(가) 들어 있습니다. 이 도구 집합은 알 수 없거나 누락되었을 수 있습니다. 이 경우 적절한 버전의 MSBuild를 설치하여 이 문제를 해결할 수 있습니다. 그렇지 않으면 빌드가 정책상의 이유로 특정 ToolsVersion이 될 수 있습니다. 프로젝트에 ToolsVersion="4.0"이 들어 있는 것으로 간주합니다. 자세한 내용은 http://go.microsoft.com/fwlink/?LinkId=291333을 참조하십시오.
+     1>ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\CL.exe /c /IC:\Users\RENDER4\Desktop\Files\OpenGL\GL /Zi /nologo /W3 /WX- /sdl /O2 /Oi /Oy- /GL /D _UNICODE /D UNICODE /Gm- /EHsc /MD /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Release\\" /Fd"Release\vc110.pdb" /Gd /TP /analyze- /errorReport:prompt Main.cpp
+         Main.cpp
+     1>C:\Program Files (x86)\Windows Kits\8.0\Include\um\GL/gl.h : warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
+     1>Main.cpp(168): warning C4018: '<' : signed 또는 unsigned가 일치하지 않습니다.
+       Link:
+         C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\Sunpil\Desktop\4학년 1학기\컴퓨터그래픽스_김창현\연구\Release\실험.exe" /NOLOGO /LIBPATH:C:\Users\RENDER4\Desktop\Files\OpenGL\GL kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\Sunpil\Desktop\4학년 1학기\컴퓨터그래픽스_김창현\연구\Release\실험.pdb" /OPT:REF /OPT:ICF /LTCG /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\Sunpil\Desktop\4학년 1학기\컴퓨터그래픽스_김창현\연구\Release\실험.lib" /MACHINE:X86 /SAFESEH Release\Main.obj
+         Release\Mesh.obj
+         Release\Vector.obj
+         코드를 생성하고 있습니다.
+         코드를 생성했습니다.
+         2000111222_홍길동_PA2.vcxproj -> C:\Users\Sunpil\Desktop\4학년 1학기\컴퓨터그래픽스_김창현\연구\Release\실험.exe
+     1>"C:\Users\Sunpil\Desktop\4학년 1학기\컴퓨터그래픽스_김창현\연구\2000111222_홍길동_PA2\2000111222_홍길동_PA2.vcxproj" 프로젝트를 빌드했습니다(Build 대상).
+
+빌드했습니다.
+
+경과 시간: 00:00:01.62
