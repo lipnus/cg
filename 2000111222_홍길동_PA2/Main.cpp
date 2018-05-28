@@ -48,9 +48,32 @@ const float PI = 3.1415926535897;
 int mouse_x = 0;
 int mouse_y = 0;
 
+GLfloat time = 0.0f;
+GLfloat boxSpeed = 0.0f;
+GLfloat boxKE[10] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
 
 
 
+int which = 0;
+
+//박스크기
+GLfloat r[10]={5.0f, 5.0f, 5.0f, 5.0f, 5.0f, 5.0f, 5.0f, 5.0f, 5.0f, 5.0f};
+
+//박스위치
+GLfloat boxX[10]={ 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+GLfloat boxY[10]={ 30.0f, 30.0f, 30.0f, 30.0f, 30.0f, 30.0f, 30.0f, 30.0f, 30.0f, 30.0f };
+GLfloat boxZ[10]={ 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+ 
+GLfloat angleX[10] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+GLfloat angleY[10] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+GLfloat angleZ[10] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+
+int collisionPoint[10]={ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }; //0:충돌없음 충돌있음:3,6,9,12, 100(노회전 정면충돌)
+void checkCollision();
+
+
+//GLfloat angleTh = 45.0f;
+//GLfloat anglePi = 0.0f;
 
 
 //매쉬파일로드
@@ -70,85 +93,6 @@ void ComputeNormal()
 		mesh[i].FindNeighborFaceArray(); //Vertex의 인접 face
 		mesh[i].ComputeVertexNormal(); //Vertex의 Normal 계산
 	}
-}
-
-
-void Mouse(int mouse_event, int state, int x, int y)
-{
-	//To Do
-	glutPostRedisplay();
-}
-
-
-//마우스 커서 이동
-void Motion(int x, int y)
-{
-	//To Do
-	//주석에 쓰인 방향은 스크린에서의 마우스커서의 이동방향을 의미
-	
-	if(controlMode == CONTROLMODE_TRANS){
-		
-		if(controlAxis == CONTOLAXIS_X){
-			if(mouse_x < x){//오른쪽
-				objDiffX[selectedObj] += 1;
-			}else{ //왼쪽
-				objDiffX[selectedObj] -= 1;
-			}
-		}else if(controlAxis == CONTOLAXIS_Z) {
-			if(mouse_y > y){ //위로
-				objDiffZ[selectedObj] -= 1;
-			}else{ //아래로
-				objDiffZ[selectedObj] += 1;
-			}
-		}else if(controlAxis == CONTOLAXIS_Y){
-			if(mouse_y > y){ //위로
-				objDiffY[selectedObj] += 1;
-			}else{ //아래로
-				objDiffY[selectedObj] -= 1;
-			}
-		}
-
-	}else if(controlMode == CONTROLMODE_ROTATE){
-	
-		if(controlAxis == CONTOLAXIS_X){
-			if(mouse_y < y){//위로
-				objAngleDiffX[selectedObj] += 15;
-			}else{ //아래로
-				objAngleDiffX[selectedObj] -= 15;
-			}
-		}else if(controlAxis == CONTOLAXIS_Z) {
-			if(mouse_x < x){ //오른쪽
-				objAngleDiffZ[selectedObj] -= 15;
-			}else{ //왼쪽
-				objAngleDiffZ[selectedObj] += 15;
-			}
-		}else if(controlAxis == CONTOLAXIS_Y){
-			if(mouse_x < x){ //오른쪽
-				objAngleDiffY[selectedObj] += 15;
-			}else{ //왼쪽
-				objAngleDiffY[selectedObj] -= 15;
-			}
-		}
-	}
-
-	//저장된 좌표 업데이트
-	mouse_x = x;
-	mouse_y = y;
-
-	glutPostRedisplay();
-}
-
-//판때기 그리기
-void RenderPlane()
-{
-	glBegin(GL_QUADS);
-		glColor3f(0.0f, 1.0f, 0.0f);
-		glNormal3f(0, 1, 0);
-		glVertex3f(-20.0f, -1.0f, 20.0f);
-		glVertex3f(-20.0f, -1.0f, -20.0f);
-		glVertex3f(20.0f, -1.0f, -20.0f);
-		glVertex3f(20.0f, -1.0f, 20.0f);
-	glEnd();
 }
 
 //매쉬에 변화량 적용
@@ -229,7 +173,6 @@ void RenderMesh(int whichMesh)
 			glVertex3f(v2.position.x, v2.position.y, v2.position.z);
 		}
 		
-		
 		//==============================================================================
 
 
@@ -238,60 +181,141 @@ void RenderMesh(int whichMesh)
 	glEnd();
 }
 
+//마우스 컨트롤
+void Mouse(int mouse_event, int state, int x, int y)
+{
+	//To Do
+	glutPostRedisplay();
+}
 
-//무너질 박스를 그려보자
-void RenderBox(float x, float y, float z){
+//마우스 커서 이동
+void Motion(int x, int y)
+{
+	//To Do
+	//주석에 쓰인 방향은 스크린에서의 마우스커서의 이동방향을 의미
+	
+	if(controlMode == CONTROLMODE_TRANS){
+		
+		if(controlAxis == CONTOLAXIS_X){
+			if(mouse_x < x){//오른쪽
+				objDiffX[selectedObj] += 1;
+			}else{ //왼쪽
+				objDiffX[selectedObj] -= 1;
+			}
+		}else if(controlAxis == CONTOLAXIS_Z) {
+			if(mouse_y > y){ //위로
+				objDiffZ[selectedObj] -= 1;
+			}else{ //아래로
+				objDiffZ[selectedObj] += 1;
+			}
+		}else if(controlAxis == CONTOLAXIS_Y){
+			if(mouse_y > y){ //위로
+				objDiffY[selectedObj] += 1;
+			}else{ //아래로
+				objDiffY[selectedObj] -= 1;
+			}
+		}
 
-	float w = 6;
-	float l = 2;
-	float h = 1;
+	}else if(controlMode == CONTROLMODE_ROTATE){
+	
+		if(controlAxis == CONTOLAXIS_X){
+			if(mouse_y < y){//위로
+				objAngleDiffX[selectedObj] += 15;
+			}else{ //아래로
+				objAngleDiffX[selectedObj] -= 15;
+			}
+		}else if(controlAxis == CONTOLAXIS_Z) {
+			if(mouse_x < x){ //오른쪽
+				objAngleDiffZ[selectedObj] -= 15;
+			}else{ //왼쪽
+				objAngleDiffZ[selectedObj] += 15;
+			}
+		}else if(controlAxis == CONTOLAXIS_Y){
+			if(mouse_x < x){ //오른쪽
+				objAngleDiffY[selectedObj] += 15;
+			}else{ //왼쪽
+				objAngleDiffY[selectedObj] -= 15;
+			}
+		}
+	}
+
+	//저장된 좌표 업데이트
+	mouse_x = x;
+	mouse_y = y;
+
+	glutPostRedisplay();
+}
+
+//판때기 그리기
+void RenderPlane()
+{
+	glBegin(GL_QUADS);
+		glColor3f(0.0f, 1.0f, 0.0f);
+		glNormal3f(0, 1, 0);
+		glVertex3f(-50.0f, 0.0f, 50.0f);
+		glVertex3f(-50.0f, 0.0f, -50.0f);
+		glVertex3f(50.0f, 0.0f, -50.0f);
+		glVertex3f(50.0f, 0.0f, 50.0f);
+	glEnd();
+}
+
+//박스
+void RenderBox(float x, float y, float z, int n){
+	
+ 	float h = r[n]*1.41421f/2;
 
 	glBegin(GL_QUADS);
 				
-		//1
+		//바닥
+		glNormal3f(0, -1, 0);
+		glColor3f(0.0f, 1.0f, 1.0f);
+		glVertex3f(x+0, y-h, z+r[n]);
+		glVertex3f(x+r[n], y-h, z+0);
+		glVertex3f(x+0, y-h, z-r[n]);
+		glVertex3f(x-r[n], y-h, z+0);
+
+		//천장
 		glNormal3f(0, 1, 0);
-		glVertex3f(x, y, z);
-		glVertex3f(x, y, z+l);
-		glVertex3f(x+w, y, z+l);
-		glVertex3f(x+w, y, z);
+		glColor3f(1.0f, 0.0f, 0.0f);
+		glVertex3f(x+0, y+h, z+r[n]);
+		glVertex3f(x+r[n], y+h, z+0);
+		glVertex3f(x+0, y+h, z-r[n]);
+		glVertex3f(x-r[n], y+h, z+0);
 
-		//2
-		glNormal3f(0, 0, 1);
-		glVertex3f(x, y, z+l);
-		glVertex3f(x+w, y, z+l);
-		glVertex3f(x+w, y+h, z+l);
-		glVertex3f(x, y+h, z+l);
+		//2시 벽
+		glNormal3f(1, 0, -1);
+		glColor3f(-0.0f, 0.0f, 1.0f);
+		glVertex3f(x+0, y+h, z-r[n]);
+		glVertex3f(x+0, y-h, z-r[n]);
+		glVertex3f(x+r[n], y-h, z+0);
+		glVertex3f(x+r[n], y+h, z+0);
+		glColor3f(0.9f, 0.0f, 0.0f);
 
-		//3
-		glNormal3f(0, 0, -1);
-		glVertex3f(x, y, z);
-		glVertex3f(x, y+h, z);
-		glVertex3f(x+w, y+h, z);
-		glVertex3f(x+w, y, z);
-
-		//4
-		glNormal3f(0, 1, 0);
-		glVertex3f(x, y+h, z);
-		glVertex3f(x, y+h, z+l);
-		glVertex3f(x+w, y+h, z+l);
-		glVertex3f(x+w, y+h, z);
+		//4시 벽
+		glNormal3f(1, 0, 1);
+		glColor3f(-0.0f, 0.0f, 1.0f);
+		glVertex3f(x+r[n], y+h, z+0);
+		glVertex3f(x+r[n], y-h, z+0);
+		glVertex3f(x+0, y-h, z+r[n]);
+		glVertex3f(x+0, y+h, z+r[n]);
 		
-		//5
-		glNormal3f(-1,0, 0);
-		glVertex3f(x, y, z);
-		glVertex3f(x, y+h, z);
-		glVertex3f(x, y+h, z+l);
-		glVertex3f(x, y, z+l);
+		//8시 벽
+		glNormal3f(-1, 0, 1);
+		glColor3f(-0.0f, 0.0f, 1.0f);
+		glVertex3f(x-r[n], y+h, z+0);
+		glVertex3f(x-r[n], y-h, z+0);
+		glVertex3f(x+0, y-h, z+r[n]);
+		glVertex3f(x+0, y+h, z+r[n]);
 
-		//6
-		glNormal3f(1, 0, 0);
-		glVertex3f(x+w, y, z);
-		glVertex3f(x+w, y+h, z);
-		glVertex3f(x+w, y+h, z+l);
-		glVertex3f(x+w, y, z+l);
+		//11시벽
+		glNormal3f(-1, 0, -1);
+		glColor3f(-0.0f, 0.0f, 1.0f);
+		glVertex3f(x+0, y+h, z-r[n]);
+		glVertex3f(x+0, y-h, z-r[n]);
+		glVertex3f(x-r[n], y-h, z+0);
+		glVertex3f(x-r[n], y+h, z+0);
 
 	glEnd();
-
 }
 
 //시점 세팅
@@ -311,44 +335,40 @@ void CameraSetting(void){
 }
 
 //그리기
-void Rendering(void){
+void Rendering(){
 	
 	// 화면 버퍼 클리어
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	CameraSetting();
 
 	RenderPlane();
+		
+	glTranslatef(boxX, boxY, boxZ);
 
-	for(int i=0; i<100; i+=2){
-		glColor3f(0.9f, 0.0f, 0.0f); RenderBox(0.0f, i, 0.0f);
-		glColor3f(0.0f, 0.9f, 0.0f); RenderBox(0.0f, i, 2.0f);
-		glColor3f(0.0f, 0.0f, 0.9f); RenderBox(0.0f, i, 4.0f);
 
-		glRotatef(90, 0.0f, 1.0f, 0.0f);
-		glTranslatef(-6.0f, 0.0f, 0.0f);
-		glColor3f(1.0f, 1.0f, 0.0f); RenderBox(0.0f, i+1.0f, 0.0f);
-		glColor3f(0.0f, 1.0f, 1.0f); RenderBox(0.0f, i+1.0f, 2.0f);
-		glColor3f(1.0f, 0.0f, 1.0f); RenderBox(0.0f, i+1.0f, 4.0f);
-
-		glTranslatef(6.0f, 0.0f, 0.0f);
-		glRotatef(-90, 0.0f, 1.0f, 0.0f);
+	//충돌 후 각도 복귀
+	if(boxKE < 0){
+		glTranslatef( -r, 0.0f, 0.0f);
 	}
+
+	//변화
+	glRotatef(angleY, 0.0f, 1.0f, 0.0f);
+	glRotatef(angleX, 1.0f, 0.0f, 0.0f);
+	glRotatef(angleZ, 0.0f, 0.0f, 1.0f);
 	
-	 
+	//충돌 후 각도 복귀
+	if(boxKE < 0){
+		glTranslatef( r, 0.0f, 0.0f);
+	}
 
-
-
-
+	glColor3f(0.9f, 0.0f, 0.0f); 
 	
-	////매쉬가 두개니까 두번
-	//for(int i=0; i<2; i++){
-	//	
-	//	//매쉬에 변화 적용
-	//	meshControl(i);
-	//	
-	//	//매쉬를 그린다
-	//	RenderMesh(i);
-	//}	
+	glPushMatrix();
+	RenderBox(0.0f, 0.0f, 0.0f, 0);
+	glPopMatrix();
+	
+	glTranslatef( 10.0f, 0.0f, 0.0f);
+	RenderBox(0.0f, 0.0f, 0.0f, 1);
 
 	// back 버퍼에 랜더링한 후 swap
 	glutSwapBuffers();
@@ -371,7 +391,6 @@ void Reshape(int w, int h)
 
 void Keyboard(unsigned char key, int x, int y)
 {
-	
 	//카메라 시점
 	switch (key){
 	case 'w':
@@ -392,73 +411,131 @@ void Keyboard(unsigned char key, int x, int y)
 		break;
 	}
 
-	//물체선택
-	switch (key) {
-		case '1':
-			cout << "1번" << endl;
-			selectedObj = 0;
-			break;
-		case '2':
-			cout << "2번" << endl;
-			selectedObj = 1;
-			break;
-	}
-
-	//물체의 컨트롤모드
-	switch (key) {
-		case 't':
-			cout << "이동모드" << endl;
-			controlMode = CONTROLMODE_TRANS;
-			break;
-		case 'r':
-			cout << "회전모드" << endl;
-			controlMode = CONTROLMODE_ROTATE;
-			break;
-	}
-
-	//축 선택
+	//충돌
 	switch (key){
-		case 'x':
-			controlAxis = CONTOLAXIS_X;
+		case 'h':
+			angleX[which] += 1.0f;
 			break;
-		case 'y':
-			controlAxis = CONTOLAXIS_Y;
+		case 'j':
+			angleX[which] -= 1.0f;
 			break;
-		case 'z':
-			controlAxis = CONTOLAXIS_Z;
+		case 'k':
+			angleY[which] += 1.0f;
 			break;
-	}
-
-	//curring face
-	switch(key){
-		case 'b':
-			if(faceCurringOn){ 
-				cout << "BackFaceCulling OFF" << endl;
-				faceCurringOn = false; 
-			}else{ 
-				cout << "BackFaceCulling ON" << endl;
-				faceCurringOn = true; 
-			}
+		case 'l':
+			angleY[which] -= 1.0f;
+			break;
+		case 'n':
+			angleZ[which] += 1.0f;
+			break;
+		case 'm':
+			angleZ[which] -= 1.0f;
 			break;
 
-		case '3':
-			if(DepthTest){
-				cout << "DepthTest ON" << endl;
-				glEnable(GL_DEPTH_TEST);
-			}
-			else{
-				cout << "DepthTest OFF" << endl;
-				glDisable(GL_DEPTH_TEST);
-			}
-			DepthTest = !DepthTest;
+		case 'o':
+			boxY[which] += 1.0f;
 			break;
+		case 'p':
+			boxY[which] -= 1.0f;
+			break;
+		
+		case 'q': //리셋
+			boxY[which] = 50.0f;
+			boxKE[which] = 1.0f;
+			angleX[which] = 0;
+			angleY[which] = 0;
+			angleZ[which] = 0;
+			time = 0;
+			boxSpeed = 0;
+			collisionPoint[which] = 0;
+		break;
 	}
+
+
+	checkCollision();
 
 	glutPostRedisplay();
 }
 
+//충돌을 체크한다(몇번째인지 명시해주어야 한다)
+void checkCollision(int n){
+
+	float startAngle = atan(0.70710678118); //중점과 정육면체 모서리가 이루는 각
+	float edgeLen = sqrt(r[n]*r[n] + r[n]*r[n] + r[n]*r[n]);
+
+	if(boxSpeed > 0){ //충돌은 내려갈때만 판정
+		if( (boxY[n] - edgeLen*sin( startAngle + angleX[n]/180*PI )) < 0){
+			collisionPoint[n]=6;
+			cout<< "6시충돌" << endl;
+		}else if( (boxY[n] - edgeLen*sin( startAngle - angleX[n]/180*PI )) < 0 ){
+			collisionPoint[n]=12;
+			cout << "12시 충돌" << endl;
+		}else if( (boxY[n] - edgeLen*sin( startAngle + angleZ[n]/180*PI )) < 0){
+			collisionPoint[n]=3;
+			cout<< "3시충돌" << endl;
+		}else if( (boxY[n] - edgeLen*sin( startAngle - angleZ[n]/180*PI )) < 0){
+			collisionPoint[n]=9;
+			cout<< "9시충돌" << endl;
+		}
+	}
+}
+
+void TimerFunc(int value)
+{
+
+	checkCollision();
+
+	//0.01초마다 시행
+	if(boxKE > 0){
+
+		angleX[0] += 0.03;
+		angleY[0] += 0.5;
+		angleZ[0] += 0.02;
+		/*
+		boxX += 0.001;
+		boxZ += 0.001;*/
+		boxSpeed += 0.001f; //스피드가 일정한 비율로 올라가는데 이게 가속도(g)의 역할을 한다
+		
+		//바닥면과 충돌
+		if(collisionPoint != 0 && boxSpeed > 0){ 
+
+			if(boxSpeed > 0.02){ //다시 튀어오르는 경우
+				cout<< "쿵! 속도:" << boxSpeed << endl;
+				boxSpeed = boxSpeed * 0.5;
+				boxSpeed = boxSpeed * (-1);
+				collisionPoint[0]=0;
+			}else{ //끝
+				cout<< "끝쿵! 속도:" << boxSpeed << endl;
+				boxKE[0] = 0;
+				boxSpeed = 0;
+				cout << "정지" << endl;
+			}
+		}
+	}else{ //정지상황에서 평평함을 복귀(kE = 0) 
+		if(angleX[0] > 1){
+			//cout << "복구" << endl;
+			angleX[0] -= 0.4f*time*time*time;
+			boxY[0] -= 0.01f;
+			boxX[0] += 0.02f;
+			boxZ[0] += 0.02f;
+
+		}else{
+			//cout << "복구완료" << endl;
+		}
+	}//KE
+	
+
+	boxY[0] -= 0.5f * time * time * boxSpeed; // 1/2a t^2
+	time = time + 0.002f;
+
+	glutPostRedisplay();
+	glutTimerFunc(1, TimerFunc, 1);
+}
+
 void EventHandlingAndLoop()
 {
+	glutTimerFunc(1, TimerFunc, 1); //타이머
+
 	glutKeyboardFunc(Keyboard);  // 키보드 입력 처리 Callback 함수 등록
 	glutDisplayFunc(Rendering);  // 변환된 값에 따른 Rendering Callback 함수 등록
 	glutReshapeFunc(Reshape);    // 윈도우 창 크기가 바뀌었을때 호출되는 Callback 함수 등록
@@ -468,13 +545,14 @@ void EventHandlingAndLoop()
 	glutMainLoop(); // 등록된 callback 함수를 반복하여 호출
 }
 
+
+
 int main(int argc, char** argv)
 {
 	Initialize(argc, argv);			  // 윈도우 생성, 배경색 설정
 
 	MeshLoad();       //To Do
 	ComputeNormal();  //To Do
-
 	EventHandlingAndLoop();      // Event Handling 및 Loop
 
 	// 에러 없이 끝났을 경우 0을 리턴함
