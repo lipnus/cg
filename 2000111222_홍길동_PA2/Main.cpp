@@ -49,7 +49,7 @@ int mouse_x = 0;
 int mouse_y = 0;
 
 GLfloat time = 0.0f;
-GLfloat boxSpeed = 0.0f;
+GLfloat boxSpeed[10] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
 GLfloat boxKE[10] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
 
 
@@ -57,11 +57,11 @@ GLfloat boxKE[10] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f
 int which = 0;
 
 //박스크기
-GLfloat r[10]={5.0f, 5.0f, 5.0f, 5.0f, 5.0f, 5.0f, 5.0f, 5.0f, 5.0f, 5.0f};
+GLfloat r[10]={5.0f, 4.0f, 5.0f, 5.0f, 5.0f, 5.0f, 5.0f, 5.0f, 5.0f, 5.0f};
 
 //박스위치
-GLfloat boxX[10]={ 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-GLfloat boxY[10]={ 30.0f, 30.0f, 30.0f, 30.0f, 30.0f, 30.0f, 30.0f, 30.0f, 30.0f, 30.0f };
+GLfloat boxX[10]={ 0.0f, 15.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+GLfloat boxY[10]={ 30.0f, 20.0f, 30.0f, 30.0f, 30.0f, 30.0f, 30.0f, 30.0f, 30.0f, 30.0f };
 GLfloat boxZ[10]={ 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
  
 GLfloat angleX[10] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
@@ -69,7 +69,7 @@ GLfloat angleY[10] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0
 GLfloat angleZ[10] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
 
 int collisionPoint[10]={ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }; //0:충돌없음 충돌있음:3,6,9,12, 100(노회전 정면충돌)
-void checkCollision();
+void checkCollision(int n);
 
 
 //GLfloat angleTh = 45.0f;
@@ -284,7 +284,7 @@ void RenderBox(float x, float y, float z, int n){
 
 		//2시 벽
 		glNormal3f(1, 0, -1);
-		glColor3f(-0.0f, 0.0f, 1.0f);
+		glColor3f(0.0f, 0.0f, 0.0f);
 		glVertex3f(x+0, y+h, z-r[n]);
 		glVertex3f(x+0, y-h, z-r[n]);
 		glVertex3f(x+r[n], y-h, z+0);
@@ -342,34 +342,33 @@ void Rendering(){
 	CameraSetting();
 
 	RenderPlane();
-		
-	glTranslatef(boxX, boxY, boxZ);
+	
+	for(int n=0; n<2; n++){
+		glPushMatrix();
+		glTranslatef(boxX[n], boxY[n], boxZ[n]);
 
 
-	//충돌 후 각도 복귀
-	if(boxKE < 0){
-		glTranslatef( -r, 0.0f, 0.0f);
+		//충돌 후 각도 복귀
+		if(boxKE[n] < 0){
+			glTranslatef( -r[n], 0.0f, 0.0f);
+		}
+
+		//변화
+		glRotatef(angleY[n], 0.0f, 1.0f, 0.0f);
+		glRotatef(angleX[n], 1.0f, 0.0f, 0.0f);
+		glRotatef(angleZ[n], 0.0f, 0.0f, 1.0f);
+	
+		//충돌 후 각도 복귀
+		if(boxKE[n] < 0){
+			glTranslatef( r[n], 0.0f, 0.0f);
+		}
+
+		glColor3f(0.9f, 0.0f, 0.0f); 
+		RenderBox(0.0f, 0.0f, 0.0f, n);
+		glPopMatrix();
 	}
-
-	//변화
-	glRotatef(angleY, 0.0f, 1.0f, 0.0f);
-	glRotatef(angleX, 1.0f, 0.0f, 0.0f);
-	glRotatef(angleZ, 0.0f, 0.0f, 1.0f);
 	
-	//충돌 후 각도 복귀
-	if(boxKE < 0){
-		glTranslatef( r, 0.0f, 0.0f);
-	}
-
-	glColor3f(0.9f, 0.0f, 0.0f); 
 	
-	glPushMatrix();
-	RenderBox(0.0f, 0.0f, 0.0f, 0);
-	glPopMatrix();
-	
-	glTranslatef( 10.0f, 0.0f, 0.0f);
-	RenderBox(0.0f, 0.0f, 0.0f, 1);
-
 	// back 버퍼에 랜더링한 후 swap
 	glutSwapBuffers();
 }
@@ -440,30 +439,31 @@ void Keyboard(unsigned char key, int x, int y)
 			break;
 		
 		case 'q': //리셋
-			boxY[which] = 50.0f;
-			boxKE[which] = 1.0f;
-			angleX[which] = 0;
-			angleY[which] = 0;
-			angleZ[which] = 0;
-			time = 0;
-			boxSpeed = 0;
-			collisionPoint[which] = 0;
+			for(int n=0; n<2; n++){
+				boxY[n] = 30.0f;
+				boxKE[n] = 1.0f;
+				angleX[n] = 0;
+				angleY[n] = 0;
+				angleZ[n] = 0;
+				time = 0;
+				boxSpeed[n] = 0;
+				collisionPoint[n] = 0;
+			}
 		break;
 	}
 
 
-	checkCollision();
-
+	checkCollision(0);
 	glutPostRedisplay();
 }
 
-//충돌을 체크한다(몇번째인지 명시해주어야 한다)
+//충돌을 체크한다(몇번째 정육면체인지 명시해주어야 한다)
 void checkCollision(int n){
 
 	float startAngle = atan(0.70710678118); //중점과 정육면체 모서리가 이루는 각
 	float edgeLen = sqrt(r[n]*r[n] + r[n]*r[n] + r[n]*r[n]);
 
-	if(boxSpeed > 0){ //충돌은 내려갈때만 판정
+	if(boxSpeed[n] > 0){ //충돌은 내려갈때만 판정
 		if( (boxY[n] - edgeLen*sin( startAngle + angleX[n]/180*PI )) < 0){
 			collisionPoint[n]=6;
 			cout<< "6시충돌" << endl;
@@ -483,49 +483,64 @@ void checkCollision(int n){
 void TimerFunc(int value)
 {
 
-	checkCollision();
+	checkCollision(0);
+	checkCollision(1);
 
-	//0.01초마다 시행
-	if(boxKE > 0){
+	//int n=0;
 
-		angleX[0] += 0.03;
-		angleY[0] += 0.5;
-		angleZ[0] += 0.02;
-		/*
-		boxX += 0.001;
-		boxZ += 0.001;*/
-		boxSpeed += 0.001f; //스피드가 일정한 비율로 올라가는데 이게 가속도(g)의 역할을 한다
+	for(int n=0; n<2; n++){
+		//0.01초마다 시행
+		if(boxKE[n] > 0){
+
+			//하강 시 변화량
+			angleX[0] += 0.03;
+			angleX[1] -= 0.01;
+
+			angleY[0] += 0.15;
+			angleY[1] -= 0.25;
+
+			angleZ[n] += 0.02;
+
+			/*
+			boxX += 0.001;
+			boxZ += 0.001;*/
+
+			boxSpeed[n] += 0.001f; //스피드가 일정한 비율로 올라가는데 이게 가속도(g)의 역할을 한다
 		
-		//바닥면과 충돌
-		if(collisionPoint != 0 && boxSpeed > 0){ 
+			//바닥면과 충돌
+			if(collisionPoint[n] != 0 && boxSpeed > 0){ 
 
-			if(boxSpeed > 0.02){ //다시 튀어오르는 경우
-				cout<< "쿵! 속도:" << boxSpeed << endl;
-				boxSpeed = boxSpeed * 0.5;
-				boxSpeed = boxSpeed * (-1);
-				collisionPoint[0]=0;
-			}else{ //끝
-				cout<< "끝쿵! 속도:" << boxSpeed << endl;
-				boxKE[0] = 0;
-				boxSpeed = 0;
-				cout << "정지" << endl;
+				if(boxSpeed[n] > 0.02){ //다시 튀어오르는 경우
+					cout<< "[" << n << "] 쿵! 속도:" << boxSpeed[n] << endl;
+					boxSpeed[n] = boxSpeed[n] * 0.5;
+					boxSpeed[n] = boxSpeed[n] * (-1);
+					collisionPoint[n]=0;
+				}else{ //끝
+					cout<< "[" << n << "] 끝쿵! 속도:" << boxSpeed[n] << endl;
+					boxKE[n] = 0;
+					boxSpeed[n] = 0;
+					cout << "[" << n << "] 정지" << endl;
+				}
 			}
-		}
-	}else{ //정지상황에서 평평함을 복귀(kE = 0) 
-		if(angleX[0] > 1){
-			//cout << "복구" << endl;
-			angleX[0] -= 0.4f*time*time*time;
-			boxY[0] -= 0.01f;
-			boxX[0] += 0.02f;
-			boxZ[0] += 0.02f;
+		}else{ //정지상황에서 평평함을 복귀(kE = 0) 
+			if(angleX[n] > 1){
+				//cout << "복구" << endl;
+				angleX[n] -= 0.4f*time*time*time;
+				boxY[n] -= 0.01f;
+				boxX[n] += 0.02f;
+				boxZ[n] += 0.02f;
 
-		}else{
-			//cout << "복구완료" << endl;
-		}
-	}//KE
+			}else{
+				//cout << "복구완료" << endl;
+			}
+		}//KE
+	}//for
+	
 	
 
-	boxY[0] -= 0.5f * time * time * boxSpeed; // 1/2a t^2
+	boxY[0] -= 0.5f * time * time *70* boxSpeed[0]; // 1/2a t^2
+	boxY[1] -= 0.5f * time * time *40* boxSpeed[1]; // 1/2a t^2
+
 	time = time + 0.002f;
 
 	glutPostRedisplay();
