@@ -54,8 +54,10 @@ GLfloat boxSpeed[10] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0
 GLfloat boxKE[10] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
 
 int which = 0;
+float shake[3] = {0,0,0};
 
 void checkCollision(int n);
+void makeShaking(float size);
 
 
 //박스 객체 선언
@@ -64,6 +66,16 @@ Box box[boxCount];
 
 //중력가속도
 float GA = 0.001;
+
+
+void makeShaking(float size){
+	cout << "난수생성" << endl;
+	shake[0] = rand()*(double(5 + 1)/double(RAND_MAX + 1)) * size * 0.03;
+	shake[1] = rand()*(double(8 + 1)/double(RAND_MAX + 1)) * size * 0.05;
+	shake[2] = rand()*(double(5 + 1)/double(RAND_MAX + 1)) * size * 0.03;
+
+}
+
 
 //초기 박스들을 세팅한다
 void InitBox(){
@@ -332,7 +344,7 @@ void CameraSetting(void){
 	//기준시점
 	gluLookAt(
 		0.0f, 25.0f, 30.0f,
-		0.0f, 10.0f, 0.0f,
+		0.0f+shake[0], 10.0f+shake[1], 0.0f+shake[2],
 		0.0f, 1.0f, 0.0f);
 
 	glTranslatef(0.0f, CamDiffY, CamDiffZ); //시점 확대축소
@@ -526,6 +538,9 @@ void TimerFunc(int value)
 		
 			//바닥면과 충돌
 			if(box[i].collisionPoint != 0 && box[i].speed > 0){ 
+
+				//충돌시 카메라 쉐이킹(크기에 비례)
+				makeShaking(box[i].r);
 
 				if(box[i].speed > 0.02){ //다시 튀어오르는 경우
 					cout<< "[" << i << "] 쿵! 속도:" << box[i].speed << endl;
