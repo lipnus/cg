@@ -1,9 +1,12 @@
+#define STB_IMG_IMPLEMENTATION
+
+
 #include "VECTOR.h"
 #include "Face.h"
 #include "Mesh.h"
 #include "Box.h"
 #include "Init.h"
-
+#include "stb_image.h"
 
 using namespace std;
 
@@ -61,12 +64,154 @@ void makeShaking(float size);
 
 
 //박스 객체 선언
-const int boxCount = 20;
+const int boxCount = 50;
 Box box[boxCount];
 
 //중력가속도
 float GA = 0.001;
 
+enum { SKY_LEFT = 0, SKY_FRONT, SKY_RIGHT, SKY_BACK, SKY_TOP, SKY_BOTTOM };   //constants for the skybox faces, so we don't have to remember so much number
+unsigned int skybox[6];   //the ids for the textures
+
+enum { BOX_LEFT = 0, BOX_FRONT, BOX_RIGHT, BOX_BACK, BOX_TOP, BOX_BOTTOM };   //constants for the skybox faces, so we don't have to remember so much number
+unsigned int dropbox[6];   //the ids for the textures
+
+
+
+unsigned int loadTexture(char* texFile)
+{
+   unsigned int mTexture;
+   glGenTextures(1, &mTexture);
+   FILE *fp = fopen(texFile, "rb");
+   if (!fp) { printf("ERROR : No %s.\n fail to bind %d\n", texFile, mTexture); return false; }
+   int width, height, channel;
+   unsigned char *image = stbi_load_from_file(fp, &width, &height, &channel, 4);
+   fclose(fp);
+   //bind
+   glBindTexture(GL_TEXTURE_2D, mTexture);
+   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
+   glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+   glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+   glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+   glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+   glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, GL_MODULATE);
+   return mTexture;
+}
+
+void initdropbox()
+{
+   for (size_t i = 0; i < 6; i++)
+   {
+      dropbox[i] = loadTexture("brick.jpg");
+   }
+}
+
+void drawSkybox(float size)
+{
+   bool b1 = glIsEnabled(GL_TEXTURE_2D);   //new, we left the textures turned on, if it was turned on
+   glDisable(GL_LIGHTING);   //turn off lighting, when making the skybox
+   //glDisable(GL_DEPTH_TEST);   //turn off depth texting
+   glEnable(GL_TEXTURE_2D);   //and turn on texturing
+   glBindTexture(GL_TEXTURE_2D, skybox[SKY_BACK]);   //use the texture we want
+   glBegin(GL_QUADS);   //and draw a face
+                  //back face
+   
+   glTexCoord2f(0, 0);   //use the correct texture coordinate
+   glVertex3f(size / 2, size / 2, size / 2);   //and a vertex
+   glTexCoord2f(1, 0);   //and repeat it...
+   glVertex3f(-size / 2, size / 2, size / 2);
+   glTexCoord2f(1, 1);
+   glVertex3f(-size / 2, -size / 2, size / 2);
+   glTexCoord2f(0, 1);
+   glVertex3f(size / 2, -size / 2, size / 2);
+   glEnd();
+   glBindTexture(GL_TEXTURE_2D, skybox[SKY_LEFT]);
+   glBegin(GL_QUADS);
+   //left face
+   glTexCoord2f(0, 0);
+   glVertex3f(-size / 2, size / 2, size / 2);
+   glTexCoord2f(1, 0);
+   glVertex3f(-size / 2, size / 2, -size / 2);
+   glTexCoord2f(1, 1);
+   glVertex3f(-size / 2, -size / 2, -size / 2);
+   glTexCoord2f(0, 1);
+   glVertex3f(-size / 2, -size / 2, size / 2);
+   glEnd();
+   glBindTexture(GL_TEXTURE_2D, skybox[SKY_FRONT]);
+   glBegin(GL_QUADS);
+   //front face
+   glTexCoord2f(1, 0);
+   glVertex3f(size / 2, size / 2, -size / 2);
+   glTexCoord2f(0, 0);
+   glVertex3f(-size / 2, size / 2, -size / 2);
+   glTexCoord2f(0, 1);
+   glVertex3f(-size / 2, -size / 2, -size / 2);
+   glTexCoord2f(1, 1);
+   glVertex3f(size / 2, -size / 2, -size / 2);
+   glEnd();
+   glBindTexture(GL_TEXTURE_2D, skybox[SKY_RIGHT]);
+   glBegin(GL_QUADS);
+   //right face
+   glTexCoord2f(0, 0);
+   glVertex3f(size / 2, size / 2, -size / 2);
+   glTexCoord2f(1, 0);
+   glVertex3f(size / 2, size / 2, size / 2);
+   glTexCoord2f(1, 1);
+   glVertex3f(size / 2, -size / 2, size / 2);
+   glTexCoord2f(0, 1);
+   glVertex3f(size / 2, -size / 2, -size / 2);
+   glEnd();
+   glBindTexture(GL_TEXTURE_2D, skybox[SKY_TOP]);
+   glBegin(GL_QUADS);         //top face
+   glTexCoord2f(1, 0);
+   glVertex3f(size / 2, size / 2, size / 2);
+   glTexCoord2f(0, 0);
+   glVertex3f(-size / 2, size / 2, size / 2);
+   glTexCoord2f(0, 1);
+   glVertex3f(-size / 2, size / 2, -size / 2);
+   glTexCoord2f(1, 1);
+   glVertex3f(size / 2, size / 2, -size / 2);
+   glEnd();
+   glBindTexture(GL_TEXTURE_2D, skybox[SKY_BOTTOM]);
+   glBegin(GL_QUADS);
+   //bottom face
+   glTexCoord2f(1, 1);
+   glVertex3f(size / 2, -size / 2, size / 2);
+   glTexCoord2f(0, 1);
+   glVertex3f(-size / 2, -size / 2, size / 2);
+   glTexCoord2f(0, 0);
+   glVertex3f(-size / 2, -size / 2, -size / 2);
+   glTexCoord2f(1, 0);
+   glVertex3f(size / 2, -size / 2, -size / 2);
+   glEnd();
+   glEnable(GL_LIGHTING);   //turn everything back, which we turned on, and turn everything off, which we have turned on.
+   glEnable(GL_DEPTH_TEST);
+
+   if (!b1)
+      glDisable(GL_TEXTURE_2D);
+}
+
+void initskybox()
+{
+   skybox[SKY_LEFT] = loadTexture("urban-skyboxes\\SaintLazarusChurch2\\negx.jpg");
+   std::cout << "loading... " << std::endl;
+   skybox[SKY_BACK] = loadTexture("urban-skyboxes\\SaintLazarusChurch2\\negz.jpg");
+   std::cout << "loading... " << std::endl;
+   skybox[SKY_RIGHT] = loadTexture("urban-skyboxes\\SaintLazarusChurch2\\posx.jpg");
+   std::cout << "loading... " << std::endl;
+   skybox[SKY_FRONT] = loadTexture("urban-skyboxes\\SaintLazarusChurch2\\posz.jpg");
+   std::cout << "loading... " << std::endl;
+   skybox[SKY_TOP] = loadTexture("urban-skyboxes\\SaintLazarusChurch2\\posy.jpg");
+   std::cout << "loading... " << std::endl;
+   skybox[SKY_BOTTOM] = loadTexture("urban-skyboxes\\SaintLazarusChurch2\\negy.jpg");
+   std::cout << "Done loading!" << std::endl;
+}
+//delete all of the textures from the skybox array (to avoid memory leaks)
+
+void killskybox()
+{
+   glDeleteTextures(6, &skybox[0]);
+}
 
 void makeShaking(float size){
 	cout << "난수생성" << endl;
@@ -81,14 +226,25 @@ void makeShaking(float size){
 void InitBox(){
 
 	for(int i=0; i<boxCount; i++){
-		 int rn1 = rand()*(double(80 + 1)/double(RAND_MAX + 1));
-		 int rn2 = rand()*(double(50 + 1)/double(RAND_MAX + 1)); 
-		 int rn3 = rand()*(double(50 + 1)/double(RAND_MAX + 1));
-		 int rn4 = rand()*(double(8 + 1)/double(RAND_MAX + 1)); 
+		 int rnx = rand()*(double(80 + 1)/double(RAND_MAX + 1));
+		 int rny = rand()*(double(50 + 1)/double(RAND_MAX + 1));
+		 int rnz = rand()*(double(70 + 1)/double(RAND_MAX + 1));
 
+		 int rn2 = rand()*(double(6 + 1)/double(RAND_MAX + 1));
 
-		box[i].SetBox( 2.0f, 0.5f, rn1, rn1, rn3, 0.01f, -0.01f, 0.01f, 0.01*rn4, 0.02*rn4, 0.05*rn4); 
+		 if(rnx%2==0){
+			 rnx = -rnx;
+		 }
 
+		 if(rnz%2==0){
+			 rnz = -rnz;
+		 }
+
+		box[i].SetBox( 
+			rn2, rn2 * 0.1f, //크기, 반동 
+			rnx, rny, rnz, //시작좌표
+			0.0f, 0.0f, -0.03f, //이동
+			0.1*rn2, 0.2*rn2, 0.05*rn2); //회전 
 	}
 
 }
@@ -358,6 +514,7 @@ void Rendering(){
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	CameraSetting();
 
+	drawSkybox(50.0f);
 	RenderPlane();
 	
 	for(int i=0; i<boxCount; i++){
@@ -607,6 +764,8 @@ int main(int argc, char** argv)
 	Initialize(argc, argv);			  // 윈도우 생성, 배경색 설정
 
 	//박스 초기화
+	initskybox();
+
 	InitBox();
 
 	MeshLoad();       //To Do

@@ -38,7 +38,7 @@ void Initialize(int argc, char** argv)
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DEPTH | GLUT_DOUBLE);
 	glutInitWindowPosition(400, 100);
 	glutInitWindowSize(1024, 576);
-	glutCreateWindow("두번째 과제");
+	glutCreateWindow("텀 프로젝트");
 	
 	// depth test
 	glEnable(GL_DEPTH_TEST);
