@@ -45,6 +45,7 @@ VECTOR3D& VECTOR3D::operator+=(VECTOR3D v)
 	this->y += v.y;
 	this->z += v.z;
 	return *this;
+
 }
 
 VECTOR3D VECTOR3D::operator-(VECTOR3D v)

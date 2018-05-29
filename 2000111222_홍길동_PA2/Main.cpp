@@ -1,6 +1,7 @@
 #include "VECTOR.h"
 #include "Face.h"
 #include "Mesh.h"
+#include "Box.h"
 #include "Init.h"
 
 
@@ -52,29 +53,33 @@ GLfloat time = 0.0f;
 GLfloat boxSpeed[10] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
 GLfloat boxKE[10] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
 
-
-
 int which = 0;
 
-//박스크기
-GLfloat r[10]={5.0f, 4.0f, 5.0f, 5.0f, 5.0f, 5.0f, 5.0f, 5.0f, 5.0f, 5.0f};
-
-//박스위치
-GLfloat boxX[10]={ 0.0f, 15.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-GLfloat boxY[10]={ 30.0f, 20.0f, 30.0f, 30.0f, 30.0f, 30.0f, 30.0f, 30.0f, 30.0f, 30.0f };
-GLfloat boxZ[10]={ 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
- 
-GLfloat angleX[10] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-GLfloat angleY[10] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-GLfloat angleZ[10] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-
-int collisionPoint[10]={ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }; //0:충돌없음 충돌있음:3,6,9,12, 100(노회전 정면충돌)
 void checkCollision(int n);
 
 
-//GLfloat angleTh = 45.0f;
-//GLfloat anglePi = 0.0f;
+//박스 객체 선언
+const int boxCount = 20;
+Box box[boxCount];
 
+//중력가속도
+float GA = 0.001;
+
+//초기 박스들을 세팅한다
+void InitBox(){
+
+	for(int i=0; i<boxCount; i++){
+		 int rn1 = rand()*(double(80 + 1)/double(RAND_MAX + 1));
+		 int rn2 = rand()*(double(50 + 1)/double(RAND_MAX + 1)); 
+		 int rn3 = rand()*(double(50 + 1)/double(RAND_MAX + 1));
+		 int rn4 = rand()*(double(8 + 1)/double(RAND_MAX + 1)); 
+
+
+		box[i].SetBox( 2.0f, 0.5f, rn1, rn1, rn3, 0.01f, -0.01f, 0.01f, 0.01*rn4, 0.02*rn4, 0.05*rn4); 
+
+	}
+
+}
 
 //매쉬파일로드
 void MeshLoad()
@@ -97,7 +102,7 @@ void ComputeNormal()
 
 //매쉬에 변화량 적용
 void meshControl(int nowDraw){
-
+	 
 	glTranslatef(objDiffX[nowDraw], objDiffY[nowDraw], objDiffZ[nowDraw]);
 
 	glRotatef(objAngleDiffX[nowDraw], 1.0f, 0.0f, 0.0f);
@@ -252,68 +257,68 @@ void RenderPlane()
 	glBegin(GL_QUADS);
 		glColor3f(0.0f, 1.0f, 0.0f);
 		glNormal3f(0, 1, 0);
-		glVertex3f(-50.0f, 0.0f, 50.0f);
-		glVertex3f(-50.0f, 0.0f, -50.0f);
-		glVertex3f(50.0f, 0.0f, -50.0f);
-		glVertex3f(50.0f, 0.0f, 50.0f);
+		glVertex3f(-200.0f, 0.0f, 200.0f);
+		glVertex3f(-200.0f, 0.0f, -200.0f);
+		glVertex3f(200.0f, 0.0f, -200.0f);
+		glVertex3f(200.0f, 0.0f, 200.0f);
 	glEnd();
 }
 
 //박스
-void RenderBox(float x, float y, float z, int n){
+void RenderBox(float x, float y, float z, int i){
 	
- 	float h = r[n]*1.41421f/2;
+ 	float h = box[i].r*1.41421f/2;
 
 	glBegin(GL_QUADS);
 				
 		//바닥
 		glNormal3f(0, -1, 0);
 		glColor3f(0.0f, 1.0f, 1.0f);
-		glVertex3f(x+0, y-h, z+r[n]);
-		glVertex3f(x+r[n], y-h, z+0);
-		glVertex3f(x+0, y-h, z-r[n]);
-		glVertex3f(x-r[n], y-h, z+0);
+		glVertex3f(x+0, y-h, z+box[i].r);
+		glVertex3f(x+box[i].r, y-h, z+0);
+		glVertex3f(x+0, y-h, z-box[i].r);
+		glVertex3f(x-box[i].r, y-h, z+0);
 
 		//천장
 		glNormal3f(0, 1, 0);
 		glColor3f(1.0f, 0.0f, 0.0f);
-		glVertex3f(x+0, y+h, z+r[n]);
-		glVertex3f(x+r[n], y+h, z+0);
-		glVertex3f(x+0, y+h, z-r[n]);
-		glVertex3f(x-r[n], y+h, z+0);
+		glVertex3f(x+0, y+h, z+box[i].r);
+		glVertex3f(x+box[i].r, y+h, z+0);
+		glVertex3f(x+0, y+h, z-box[i].r);
+		glVertex3f(x-box[i].r, y+h, z+0);
 
 		//2시 벽
 		glNormal3f(1, 0, -1);
 		glColor3f(0.0f, 0.0f, 0.0f);
-		glVertex3f(x+0, y+h, z-r[n]);
-		glVertex3f(x+0, y-h, z-r[n]);
-		glVertex3f(x+r[n], y-h, z+0);
-		glVertex3f(x+r[n], y+h, z+0);
+		glVertex3f(x+0, y+h, z-box[i].r);
+		glVertex3f(x+0, y-h, z-box[i].r);
+		glVertex3f(x+box[i].r, y-h, z+0);
+		glVertex3f(x+box[i].r, y+h, z+0);
 		glColor3f(0.9f, 0.0f, 0.0f);
 
 		//4시 벽
 		glNormal3f(1, 0, 1);
 		glColor3f(-0.0f, 0.0f, 1.0f);
-		glVertex3f(x+r[n], y+h, z+0);
-		glVertex3f(x+r[n], y-h, z+0);
-		glVertex3f(x+0, y-h, z+r[n]);
-		glVertex3f(x+0, y+h, z+r[n]);
+		glVertex3f(x+box[i].r, y+h, z+0);
+		glVertex3f(x+box[i].r, y-h, z+0);
+		glVertex3f(x+0, y-h, z+box[i].r);
+		glVertex3f(x+0, y+h, z+box[i].r);
 		
 		//8시 벽
 		glNormal3f(-1, 0, 1);
 		glColor3f(-0.0f, 0.0f, 1.0f);
-		glVertex3f(x-r[n], y+h, z+0);
-		glVertex3f(x-r[n], y-h, z+0);
-		glVertex3f(x+0, y-h, z+r[n]);
-		glVertex3f(x+0, y+h, z+r[n]);
+		glVertex3f(x-box[i].r, y+h, z+0);
+		glVertex3f(x-box[i].r, y-h, z+0);
+		glVertex3f(x+0, y-h, z+box[i].r);
+		glVertex3f(x+0, y+h, z+box[i].r);
 
 		//11시벽
 		glNormal3f(-1, 0, -1);
 		glColor3f(-0.0f, 0.0f, 1.0f);
-		glVertex3f(x+0, y+h, z-r[n]);
-		glVertex3f(x+0, y-h, z-r[n]);
-		glVertex3f(x-r[n], y-h, z+0);
-		glVertex3f(x-r[n], y+h, z+0);
+		glVertex3f(x+0, y+h, z-box[i].r);
+		glVertex3f(x+0, y-h, z-box[i].r);
+		glVertex3f(x-box[i].r, y-h, z+0);
+		glVertex3f(x-box[i].r, y+h, z+0);
 
 	glEnd();
 }
@@ -343,30 +348,30 @@ void Rendering(){
 
 	RenderPlane();
 	
-	for(int n=0; n<2; n++){
+	for(int i=0; i<boxCount; i++){
 		glPushMatrix();
-		glTranslatef(boxX[n], boxY[n], boxZ[n]);
+		glTranslatef(box[i].X, box[i].Y, box[i].Z);
 
 
 		//충돌 후 각도 복귀
-		if(boxKE[n] < 0){
-			glTranslatef( -r[n], 0.0f, 0.0f);
+		if(box[i].KE < 0){
+			glTranslatef( -box[i].r, 0.0f, 0.0f);
 		}
 
 		//변화
-		glRotatef(angleY[n], 0.0f, 1.0f, 0.0f);
-		glRotatef(angleX[n], 1.0f, 0.0f, 0.0f);
-		glRotatef(angleZ[n], 0.0f, 0.0f, 1.0f);
+		glRotatef(box[i].angleY, 0.0f, 1.0f, 0.0f);
+		glRotatef(box[i].angleX, 1.0f, 0.0f, 0.0f);
+		glRotatef(box[i].angleZ, 0.0f, 0.0f, 1.0f);
 	
 		//충돌 후 각도 복귀
-		if(boxKE[n] < 0){
-			glTranslatef( r[n], 0.0f, 0.0f);
+		if(box[i].KE < 0){
+			glTranslatef( box[i].r, 0.0f, 0.0f);
 		}
 
 		glColor3f(0.9f, 0.0f, 0.0f); 
-		RenderBox(0.0f, 0.0f, 0.0f, n);
+		RenderBox(0.0f, 0.0f, 0.0f, i);
 		glPopMatrix();
-	}
+	}//for
 	
 	
 	// back 버퍼에 랜더링한 후 swap
@@ -413,41 +418,54 @@ void Keyboard(unsigned char key, int x, int y)
 	//충돌
 	switch (key){
 		case 'h':
-			angleX[which] += 1.0f;
+			box[which].angleX += 1.0f;
 			break;
 		case 'j':
-			angleX[which] -= 1.0f;
+			box[which].angleX -= 1.0f;
 			break;
 		case 'k':
-			angleY[which] += 1.0f;
+			box[which].angleY += 1.0f;
 			break;
 		case 'l':
-			angleY[which] -= 1.0f;
+			box[which].angleY -= 1.0f;
 			break;
 		case 'n':
-			angleZ[which] += 1.0f;
+			box[which].angleZ += 1.0f;
 			break;
 		case 'm':
-			angleZ[which] -= 1.0f;
+			box[which].angleZ -= 1.0f;
 			break;
 
 		case 'o':
-			boxY[which] += 1.0f;
+			box[which].Y += 1.0f;
 			break;
 		case 'p':
-			boxY[which] -= 1.0f;
+			box[which].Y -= 1.0f;
 			break;
 		
 		case 'q': //리셋
-			for(int n=0; n<2; n++){
-				boxY[n] = 30.0f;
-				boxKE[n] = 1.0f;
-				angleX[n] = 0;
-				angleY[n] = 0;
-				angleZ[n] = 0;
+			for(int i=0; i<boxCount; i++){
+				//InitBox();
+				
+				//box[i].Y = 60.0f;
+				box[i].KE = 1.0f;
+				box[i].angleX = 0;
+				box[i].angleY = 0;
+				box[i].angleZ = 0;
 				time = 0;
-				boxSpeed[n] = 0;
-				collisionPoint[n] = 0;
+				box[i].speed = 0;
+				box[i].collisionPoint = 0;
+
+				//box[i].KE = 1.0f;
+				//time = 0;
+				//box[i].speed = 0;
+				//box[i].collisionPoint = 0;
+			}
+		break;
+
+		case 'e': //리셋
+			for(int i=0; i<boxCount; i++){
+				InitBox();
 			}
 		break;
 	}
@@ -461,20 +479,20 @@ void Keyboard(unsigned char key, int x, int y)
 void checkCollision(int n){
 
 	float startAngle = atan(0.70710678118); //중점과 정육면체 모서리가 이루는 각
-	float edgeLen = sqrt(r[n]*r[n] + r[n]*r[n] + r[n]*r[n]);
+	float edgeLen = sqrt(box[n].r*box[n].r + box[n].r*box[n].r + box[n].r*box[n].r);
 
-	if(boxSpeed[n] > 0){ //충돌은 내려갈때만 판정
-		if( (boxY[n] - edgeLen*sin( startAngle + angleX[n]/180*PI )) < 0){
-			collisionPoint[n]=6;
+	if(box[n].speed > 0){ //충돌은 내려갈때만 판정
+		if( (box[n].Y - edgeLen*sin( startAngle + box[n].angleX/180*PI )) < 0){
+			box[n].collisionPoint=6;
 			cout<< "6시충돌" << endl;
-		}else if( (boxY[n] - edgeLen*sin( startAngle - angleX[n]/180*PI )) < 0 ){
-			collisionPoint[n]=12;
+		}else if( (box[n].Y - edgeLen*sin( startAngle - box[n].angleX/180*PI )) < 0 ){
+			box[n].collisionPoint=12;
 			cout << "12시 충돌" << endl;
-		}else if( (boxY[n] - edgeLen*sin( startAngle + angleZ[n]/180*PI )) < 0){
-			collisionPoint[n]=3;
+		}else if( (box[n].Y - edgeLen*sin( startAngle + box[n].angleZ/180*PI )) < 0){
+			box[n].collisionPoint=3;
 			cout<< "3시충돌" << endl;
-		}else if( (boxY[n] - edgeLen*sin( startAngle - angleZ[n]/180*PI )) < 0){
-			collisionPoint[n]=9;
+		}else if( (box[n].Y - edgeLen*sin( startAngle - box[n].angleZ/180*PI )) < 0){
+			box[n].collisionPoint=9;
 			cout<< "9시충돌" << endl;
 		}
 	}
@@ -483,52 +501,56 @@ void checkCollision(int n){
 void TimerFunc(int value)
 {
 
-	checkCollision(0);
-	checkCollision(1);
+	for(int i=0; i<boxCount; i++){
+		checkCollision(i);
+	}
 
 	//int n=0;
 
-	for(int n=0; n<2; n++){
+	for(int i=0; i<boxCount; i++){
 		//0.01초마다 시행
-		if(boxKE[n] > 0){
+		if(box[i].KE > 0){
 
-			//하강 시 변화량
-			angleX[0] += 0.03;
-			angleX[1] -= 0.01;
+			//하강 시 각 변화량
+			box[i].angleX += box[i].angleDiffX;
+			box[i].angleY += box[i].angleDiffY;
+			box[i].angleZ += box[i].angleDiffZ;
+			
+			//하강 시 위치 변화량
+			box[i].X += box[i].diffX;
+			box[i].Y += box[i].diffY;
+			box[i].Z += box[i].diffZ;
 
-			angleY[0] += 0.15;
-			angleY[1] -= 0.25;
-
-			angleZ[n] += 0.02;
-
-			/*
-			boxX += 0.001;
-			boxZ += 0.001;*/
-
-			boxSpeed[n] += 0.001f; //스피드가 일정한 비율로 올라가는데 이게 가속도(g)의 역할을 한다
+			//스피드가 일정한 비율로 올라가는데 이게 중력가속도(g)의 역할을 한다
+			box[i].speed += GA; 
 		
 			//바닥면과 충돌
-			if(collisionPoint[n] != 0 && boxSpeed > 0){ 
+			if(box[i].collisionPoint != 0 && box[i].speed > 0){ 
 
-				if(boxSpeed[n] > 0.02){ //다시 튀어오르는 경우
-					cout<< "[" << n << "] 쿵! 속도:" << boxSpeed[n] << endl;
-					boxSpeed[n] = boxSpeed[n] * 0.5;
-					boxSpeed[n] = boxSpeed[n] * (-1);
-					collisionPoint[n]=0;
+				if(box[i].speed > 0.02){ //다시 튀어오르는 경우
+					cout<< "[" << i << "] 쿵! 속도:" << box[i].speed << endl;
+					box[i].speed = box[i].speed * box[i].collisionValue;
+					box[i].speed = box[i].speed * (-1);
+					box[i].collisionPoint=0;
 				}else{ //끝
-					cout<< "[" << n << "] 끝쿵! 속도:" << boxSpeed[n] << endl;
-					boxKE[n] = 0;
-					boxSpeed[n] = 0;
-					cout << "[" << n << "] 정지" << endl;
+					cout<< "[" << i << "] 끝쿵! 속도:" << box[i].speed << endl;
+					box[i].KE = 0;
+					box[i].speed = 0;
+					cout << "[" << i << "] 정지" << endl;
 				}
 			}
 		}else{ //정지상황에서 평평함을 복귀(kE = 0) 
-			if(angleX[n] > 1){
-				//cout << "복구" << endl;
-				angleX[n] -= 0.4f*time*time*time;
-				boxY[n] -= 0.01f;
-				boxX[n] += 0.02f;
-				boxZ[n] += 0.02f;
+			if(box[i].angleX > 1){
+				cout << "복구" << endl;
+
+				if(box[i].angleX > 90){
+					float rest = box[i].angleX / 90;
+					box[i].angleX = box[i].angleX - 90*rest;
+				}
+				box[i].angleX -= 0.4f*time*time*time;
+				box[i].Y -= 0.01f;
+				box[i].X += 0.02f;
+				box[i].Z += 0.02f;
 
 			}else{
 				//cout << "복구완료" << endl;
@@ -537,11 +559,14 @@ void TimerFunc(int value)
 	}//for
 	
 	
-
-	boxY[0] -= 0.5f * time * time *70* boxSpeed[0]; // 1/2a t^2
-	boxY[1] -= 0.5f * time * time *40* boxSpeed[1]; // 1/2a t^2
+	//박스의 하강 컨트롤
+	for(int i=0; i<boxCount; i++){
+		box[i].Y -= 1.0f * time * time *box[i].speed; 
+	}
+	 
 
 	time = time + 0.002f;
+ 
 
 	glutPostRedisplay();
 	glutTimerFunc(1, TimerFunc, 1);
@@ -565,6 +590,9 @@ void EventHandlingAndLoop()
 int main(int argc, char** argv)
 {
 	Initialize(argc, argv);			  // 윈도우 생성, 배경색 설정
+
+	//박스 초기화
+	InitBox();
 
 	MeshLoad();       //To Do
 	ComputeNormal();  //To Do
